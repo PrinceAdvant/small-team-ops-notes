@@ -1,0 +1,46 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Writing an incident runbook for a single-server app</title><meta name="description" content="A practical runbook template for the first 30 minutes of an outage on one VPS."><link rel="canonical" href="https://princeadvant.github.io/small-team-ops-notes/writing-an-incident-runbook-for-a-single-server-app/"><style>body{max-width:720px;margin:2rem auto;padding:0 1rem;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.65;color:#1f2328}pre{background:#f6f8fa;padding:1rem;overflow:auto;border-radius:6px}code{background:#f6f8fa;padding:.1rem .3rem;border-radius:4px}table{border-collapse:collapse}td,th{border:1px solid #d0d7de;padding:.4rem .6rem}a{color:#0969da}header a{color:#1f2328;text-decoration:none;font-weight:600}footer{margin-top:3rem;font-size:.9rem;color:#57606a}</style></head><body><header><a href="https://princeadvant.github.io/small-team-ops-notes/">Small Team Ops Notes</a></header><main><article><h1>Writing an incident runbook for a single-server app</h1><p>A runbook is the page you open when the site is down and your heart rate is up. For a single-server app it does not need to be long. It needs to be in the right order and written before the incident.</p>
+<h2>Put it where you can reach it during an outage</h2>
+<p>Not on the server that is down. A Git repo, a shared doc or a printed page all work.</p>
+<h2>Section 1: confirm the problem</h2>
+<ul>
+<li>Check the site from outside your network, for example with a phone on mobile data</li>
+<li>Check your uptime monitor for when it started</li>
+<li>Note the time; you will need it for logs</li>
+</ul>
+<h2>Section 2: is the server alive?</h2>
+<pre><code>ssh deploy@server
+uptime
+df -h
+free -m
+</code></pre>
+<p>Disk full and memory exhaustion cause a large share of single-server outages. If SSH itself fails, go to the provider console and check whether the machine is running.</p>
+<h2>Section 3: are the containers running?</h2>
+<pre><code>docker ps -a --format '{{.Names}}  {{.Status}}'
+</code></pre>
+<p>Look for containers that are restarting or exited. Then read logs for the window you noted:</p>
+<pre><code>docker logs --since 30m app
+</code></pre>
+<p>This is where good logging pays off. If logs are huge and unstructured, finding the first error takes much longer.</p>
+<h2>Section 4: common fixes, in order of risk</h2>
+<ol>
+<li>Restart the failing container</li>
+<li>Free disk space by pruning old images and build cache</li>
+<li>Roll back to the previous image or release</li>
+<li>Restart the Docker daemon</li>
+<li>Reboot the server</li>
+</ol>
+<p>Write the exact commands for your setup next to each step.</p>
+<h2>Section 5: communicate</h2>
+<p>Post a short status note even if you do not know the cause yet. "We are aware the site is down and investigating" buys patience.</p>
+<h2>Section 6: after recovery</h2>
+<ul>
+<li>Record the timeline while you remember it</li>
+<li>Capture logs before they rotate away</li>
+<li>Write one or two follow-up actions, not twenty</li>
+</ul>
+<h2>Keep it current</h2>
+<p>Every time you use the runbook, fix whatever was wrong or missing. Review it when you change hosting, proxy or database setups. A stale runbook with old container names is almost as bad as none.</p>
+<h2>Practice once</h2>
+<p>Pick a quiet afternoon, stop a non-critical container on staging and follow the runbook as if it were real. You will find at least one missing command or outdated path.</p>
+<p>Good logs make every section above faster. This guide on <a href="https://peon.sh/blogs/docker-logs-best-practices">Docker logging practices</a> explains rotation, structure and retention.</p>
+<p>Disclosure: I work on <a href="https://peon.sh/">Peon</a>.</p></article></main><footer>Practical notes on deploys, access, incidents and configuration for small engineering teams.</footer></body></html>

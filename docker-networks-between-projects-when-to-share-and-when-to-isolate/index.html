@@ -1,0 +1,30 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Docker networks between projects: when to share and when to isolate</title><meta name="description" content="How to decide which containers should share a network and how to connect projects safely."><link rel="canonical" href="https://princeadvant.github.io/small-team-ops-notes/docker-networks-between-projects-when-to-share-and-when-to-isolate/"><style>body{max-width:720px;margin:2rem auto;padding:0 1rem;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.65;color:#1f2328}pre{background:#f6f8fa;padding:1rem;overflow:auto;border-radius:6px}code{background:#f6f8fa;padding:.1rem .3rem;border-radius:4px}table{border-collapse:collapse}td,th{border:1px solid #d0d7de;padding:.4rem .6rem}a{color:#0969da}header a{color:#1f2328;text-decoration:none;font-weight:600}footer{margin-top:3rem;font-size:.9rem;color:#57606a}</style></head><body><header><a href="https://princeadvant.github.io/small-team-ops-notes/">Small Team Ops Notes</a></header><main><article><h1>Docker networks between projects: when to share and when to isolate</h1><p>When several projects run on one server, Docker networking decides which containers can talk to each other. The default Compose behavior, one network per project, is a good start. Problems appear when projects need to share something, such as a reverse proxy or a database.</p>
+<h2>The default: one network per project</h2>
+<p>Compose creates a network named after the project. Services inside it reach each other by name. Containers from other projects cannot reach them unless you connect the networks. This isolation is valuable: a compromised app in one project cannot scan the database of another.</p>
+<h2>The reverse proxy exception</h2>
+<p>A single reverse proxy usually fronts all projects. The common pattern is an external network, for example <code>proxy</code>, created once:</p>
+<pre><code>docker network create proxy
+</code></pre>
+<p>Each app joins both its own project network and <code>proxy</code>. The database joins only the project network. The proxy can reach the app; it cannot reach the database.</p>
+<h2>Sharing a database between projects</h2>
+<p>Avoid it when you can. If two apps truly need the same database, prefer:</p>
+<ol>
+<li>A dedicated network containing only the database and the apps that need it</li>
+<li>Separate database users with access to separate schemas</li>
+</ol>
+<p>Do not put every container on one big shared network for convenience. It removes the isolation that made Compose networks useful.</p>
+<h2>Internal networks</h2>
+<p>Mark networks that should never reach the internet as internal:</p>
+<pre><code>networks:
+  backend:
+    internal: true
+</code></pre>
+<p>Containers on an internal network cannot make outbound connections, which is a useful guard for databases.</p>
+<h2>Published ports bypass all of this</h2>
+<p><code>ports: - "5432:5432"</code> exposes the database on the host, outside the network model, and often to the internet. Only publish ports for the reverse proxy. Use <code>127.0.0.1:5432:5432</code> if you need local access for maintenance.</p>
+<h2>DNS names</h2>
+<p>Within a network, use service names, not container IPs. IPs change when containers are recreated. If two projects on a shared network use the same service name, such as <code>db</code>, add network aliases to avoid confusion.</p>
+<h2>Quick audit</h2>
+<p>Run <code>docker network ls</code>, then <code>docker network inspect</code> on each network and list the containers attached. Any database attached to the proxy network, or any unexpected published port, is worth fixing.</p>
+<p>For the basics of bridge networks, DNS and port publishing, this guide to <a href="https://peon.sh/blogs/docker-networking-explained">Docker networking</a> is a good reference.</p>
+<p>Disclosure: I work on <a href="https://peon.sh/">Peon</a>.</p></article></main><footer>Practical notes on deploys, access, incidents and configuration for small engineering teams.</footer></body></html>

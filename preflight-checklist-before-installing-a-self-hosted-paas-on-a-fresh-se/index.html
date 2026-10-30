@@ -1,0 +1,48 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Preflight checklist before installing a self-hosted PaaS on a fresh server</title><meta name="description" content="What to check on a new server before installing any self-hosted deployment platform."><link rel="canonical" href="https://princeadvant.github.io/small-team-ops-notes/preflight-checklist-before-installing-a-self-hosted-paas-on-a-fresh-se/"><style>body{max-width:720px;margin:2rem auto;padding:0 1rem;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.65;color:#1f2328}pre{background:#f6f8fa;padding:1rem;overflow:auto;border-radius:6px}code{background:#f6f8fa;padding:.1rem .3rem;border-radius:4px}table{border-collapse:collapse}td,th{border:1px solid #d0d7de;padding:.4rem .6rem}a{color:#0969da}header a{color:#1f2328;text-decoration:none;font-weight:600}footer{margin-top:3rem;font-size:.9rem;color:#57606a}</style></head><body><header><a href="https://princeadvant.github.io/small-team-ops-notes/">Small Team Ops Notes</a></header><main><article><h1>Preflight checklist before installing a self-hosted PaaS on a fresh server</h1><p>Installing a self-hosted PaaS usually takes a few minutes. Fixing an install on a server that was not ready can take an evening. This preflight list catches the usual problems before you run any install script.</p>
+<h2>Operating system</h2>
+<ul>
+<li>Use a current LTS release, such as Ubuntu 24.04 or Debian 12</li>
+<li>Apply updates and reboot once: <code>apt update &amp;&amp; apt upgrade</code>, then <code>reboot</code></li>
+<li>Set the hostname and timezone so logs make sense later</li>
+</ul>
+<h2>Resources</h2>
+<ul>
+<li>At least 2 GB of RAM for the platform plus a small app. 4 GB is more comfortable if builds run on the same machine.</li>
+<li>30 GB or more of disk. Docker images and build caches grow faster than people expect.</li>
+<li>Add a small swap file on low memory servers to survive build spikes.</li>
+</ul>
+<h2>Network and DNS</h2>
+<ul>
+<li>Note the public IPv4 and IPv6 addresses</li>
+<li>Create DNS records for the dashboard and for a wildcard such as <code>*.apps.example.com</code> if you plan to use generated subdomains</li>
+<li>Make sure ports 80 and 443 are reachable. Certificate issuance fails silently if a cloud firewall blocks port 80.</li>
+</ul>
+<h2>Firewall</h2>
+<ul>
+<li>Allow 22, 80 and 443 only</li>
+<li>Check the provider's firewall as well as the host firewall</li>
+<li>Remember that Docker manipulates iptables directly, so host firewall rules alone do not protect published container ports</li>
+</ul>
+<h2>SSH</h2>
+<ul>
+<li>Log in with keys, disable password authentication</li>
+<li>Create a non-root user with sudo for daily work</li>
+<li>Keep a second session open while changing SSH settings so you cannot lock yourself out</li>
+</ul>
+<h2>Docker</h2>
+<ul>
+<li>If the platform installs Docker for you, do not preinstall a different version</li>
+<li>If you install it yourself, use Docker's official repository rather than the distribution package</li>
+</ul>
+<h2>Decide where the control plane lives</h2>
+<p>Some platforms let you run the dashboard on your own server or use a hosted control plane and only connect application servers. Hosting it yourself gives full data residency; using a hosted one means one less thing to back up and update. Decide before installing.</p>
+<h2>Backups from day one</h2>
+<p>Plan where database dumps will go, for example an S3 compatible bucket, before you deploy anything important.</p>
+<h2>After install</h2>
+<ul>
+<li>Log in, enable two-factor authentication</li>
+<li>Deploy a test app with a domain and HTTPS</li>
+<li>Reboot the server and confirm everything comes back</li>
+</ul>
+<p>For the exact prerequisites and steps of one platform, see this <a href="https://peon.sh/docs/installation">self-hosting installation guide</a>.</p>
+<p>Disclosure: I work on <a href="https://peon.sh/">Peon</a>.</p></article></main><footer>Practical notes on deploys, access, incidents and configuration for small engineering teams.</footer></body></html>

@@ -1,0 +1,36 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Onboarding a new developer to your deployment setup in one afternoon</title><meta name="description" content="A short plan for giving a new teammate safe, useful access to servers and deploys on day one."><link rel="canonical" href="https://princeadvant.github.io/small-team-ops-notes/onboarding-a-new-developer-to-your-deployment-setup-in-one-afternoon/"><style>body{max-width:720px;margin:2rem auto;padding:0 1rem;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.65;color:#1f2328}pre{background:#f6f8fa;padding:1rem;overflow:auto;border-radius:6px}code{background:#f6f8fa;padding:.1rem .3rem;border-radius:4px}table{border-collapse:collapse}td,th{border:1px solid #d0d7de;padding:.4rem .6rem}a{color:#0969da}header a{color:#1f2328;text-decoration:none;font-weight:600}footer{margin-top:3rem;font-size:.9rem;color:#57606a}</style></head><body><header><a href="https://princeadvant.github.io/small-team-ops-notes/">Small Team Ops Notes</a></header><main><article><h1>Onboarding a new developer to your deployment setup in one afternoon</h1><p>Small teams often onboard developers to infrastructure by sharing an SSH key and a password manager folder. It works until someone leaves or something breaks. A better first day takes one afternoon and leaves a clear trail.</p>
+<h2>Before they arrive</h2>
+<ul>
+<li>Create their account in the deployment tool, Git host and error tracker</li>
+<li>Decide their starting role: usually able to deploy to staging and view production, not change production settings</li>
+<li>Prepare a short document listing every environment, its URL and who owns it</li>
+</ul>
+<h2>Hour 1: the map</h2>
+<p>Walk through how code reaches production. Draw it if you can:</p>
+<ol>
+<li>Push to a branch</li>
+<li>CI runs tests and builds an image</li>
+<li>Preview or staging deploy</li>
+<li>Merge to main triggers production</li>
+</ol>
+<p>Show where logs live and where alerts go. A new developer who knows where to look is useful during the next incident, even without production permissions.</p>
+<h2>Hour 2: first deploy</h2>
+<p>Ask them to make a tiny change, such as a text tweak, and take it all the way to staging. This tests their access, the docs and the pipeline at once. Fix any missing step in the docs immediately, while the confusion is fresh.</p>
+<h2>Hour 3: read-only production</h2>
+<p>Let them open production logs, metrics and the list of services. Avoid giving a shell on the server on day one. Most questions can be answered from logs and dashboards, and fewer shells means fewer accidental changes.</p>
+<h2>Hour 4: the rules</h2>
+<p>Cover the few rules that matter:</p>
+<ul>
+<li>Who can deploy to production, and when</li>
+<li>How secrets are stored and why they never go in Git</li>
+<li>How to roll back</li>
+<li>Who to call when something breaks out of hours</li>
+</ul>
+<h2>Use roles, not shared logins</h2>
+<p>Everything above is easier when your platform has real roles. A shared admin login cannot tell you who restarted a database, and it cannot be revoked for one person. Per-person accounts with project-level roles let you grant exactly what is needed and remove it cleanly later.</p>
+<h2>After the first week</h2>
+<p>Review their access. Promote them to production deploys once they have shipped a few changes through staging. Write down anything they found confusing and fix the docs.</p>
+<h2>Offboarding uses the same list</h2>
+<p>The same inventory you prepared for onboarding becomes the offboarding checklist. When every access point is listed, removing someone takes minutes instead of a day of hunting through servers for authorized keys.</p>
+<p>If you are still choosing tooling, this comparison on <a href="https://peon.sh/blogs/best-paas-for-small-teams-2026">choosing a PaaS for a small team</a> looks at roles, pricing and self-hosting options.</p>
+<p>Disclosure: I work on <a href="https://peon.sh/">Peon</a>.</p></article></main><footer>Practical notes on deploys, access, incidents and configuration for small engineering teams.</footer></body></html>

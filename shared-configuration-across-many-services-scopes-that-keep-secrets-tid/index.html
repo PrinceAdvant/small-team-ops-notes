@@ -1,0 +1,31 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Shared configuration across many services: scopes that keep secrets tidy</title><meta name="description" content="How to organize config that many services need, from SMTP credentials to API keys, without copy and paste."><link rel="canonical" href="https://princeadvant.github.io/small-team-ops-notes/shared-configuration-across-many-services-scopes-that-keep-secrets-tid/"><style>body{max-width:720px;margin:2rem auto;padding:0 1rem;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;line-height:1.65;color:#1f2328}pre{background:#f6f8fa;padding:1rem;overflow:auto;border-radius:6px}code{background:#f6f8fa;padding:.1rem .3rem;border-radius:4px}table{border-collapse:collapse}td,th{border:1px solid #d0d7de;padding:.4rem .6rem}a{color:#0969da}header a{color:#1f2328;text-decoration:none;font-weight:600}footer{margin-top:3rem;font-size:.9rem;color:#57606a}</style></head><body><header><a href="https://princeadvant.github.io/small-team-ops-notes/">Small Team Ops Notes</a></header><main><article><h1>Shared configuration across many services: scopes that keep secrets tidy</h1><p>Once you run more than a handful of services, the same values start appearing everywhere: an SMTP password, an error tracking DSN, an organization API key. Copying them into each service works until you need to rotate one. Then you are hunting through ten settings pages and hoping you found them all.</p>
+<h2>Sort values by scope</h2>
+<p>Most configuration falls into one of four scopes:</p>
+<ul>
+<li><strong>Organization wide</strong>: values every project might need, such as a shared SMTP relay or logging endpoint</li>
+<li><strong>Project wide</strong>: values shared by the services of one product, such as a database URL used by both web and worker</li>
+<li><strong>Server wide</strong>: values tied to a machine, such as a local cache address or region name</li>
+<li><strong>Service specific</strong>: values only one app uses, such as its own session secret</li>
+</ul>
+<p>Write this list down for your current setup. It usually reveals a few values duplicated in many places.</p>
+<h2>Define once, reference many times</h2>
+<p>Store shared values once at the right scope and have services reference them. When the SMTP password changes, you update one entry and redeploy the services that use it.</p>
+<h2>Keep build-time values separate</h2>
+<p>Some frameworks bake environment variables into the build, for example <code>NEXT_PUBLIC_*</code> in Next.js or <code>VITE_*</code> in Vite. Changing these requires a rebuild, not just a restart. Mark them clearly so nobody expects a restart to pick up the new value.</p>
+<h2>Naming conventions help</h2>
+<p>Prefix shared values by system: <code>SMTP_HOST</code>, <code>SMTP_USER</code>, <code>SENTRY_DSN</code>. Avoid generic names like <code>KEY</code> or <code>TOKEN</code> that collide between services.</p>
+<h2>Rotation routine</h2>
+<ol>
+<li>Create the new credential at the provider</li>
+<li>Update the shared value</li>
+<li>Redeploy dependent services</li>
+<li>Confirm they work</li>
+<li>Revoke the old credential</li>
+</ol>
+<p>Having one place to change makes this a ten minute task instead of a project.</p>
+<h2>Who can see what</h2>
+<p>Shared values are often the most sensitive ones. Restrict who can read organization-wide secrets, and log changes. A developer who needs to deploy one service rarely needs to read the production payment key.</p>
+<h2>Clean up regularly</h2>
+<p>Unused shared values pile up. Every quarter, check which ones are still referenced and delete the rest. Fewer secrets means fewer things to leak.</p>
+<p>For a concrete example of workspace, project and server scopes in a deployment platform, see the documentation on <a href="https://peon.sh/docs/shared-variables">shared variables</a>.</p>
+<p>Disclosure: I work on <a href="https://peon.sh/">Peon</a>.</p></article></main><footer>Practical notes on deploys, access, incidents and configuration for small engineering teams.</footer></body></html>
